@@ -47,6 +47,17 @@ The generated Dockerfile lives at:
 packages/backend/Dockerfile
 ```
 
+## Pipeline
+
+The Azure DevOps pipeline definition is:
+
+```text
+azure-pipelines.yml
+```
+
+It validates the app, builds the backend bundle, builds the Docker image and
+pushes public image tags to GHCR.
+
 ## Image Tags
 
 Use immutable tags for deploys:

@@ -1,0 +1,146 @@
+trigger:
+  branches:
+    include:
+      - main
+  tags:
+    include:
+      - v*
+
+pr:
+  branches:
+    include:
+      - main
+
+variables:
+  nodeVersion: '24.x'
+  imageRepository: 'ghcr.io/giulianopedrotti/loario-backstage'
+  dockerfilePath: 'packages/backend/Dockerfile'
+  DOCKER_BUILDKIT: '1'
+
+stages:
+  - stage: validate
+    displayName: Validate Backstage app
+    jobs:
+      - job: validate
+        displayName: Install, typecheck, lint and build backend
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - task: NodeTool@0
+            displayName: Use Node.js $(nodeVersion)
+            inputs:
+              versionSpec: '$(nodeVersion)'
+
+          - script: corepack enable
+            displayName: Enable Corepack
+
+          - script: yarn install --immutable
+            displayName: Install dependencies
+
+          - script: yarn tsc
+            displayName: Typecheck
+
+          - script: yarn lint:all
+            displayName: Lint
+
+          - script: yarn test --ci
+            displayName: Unit tests
+
+          - script: yarn build:backend
+            displayName: Build backend bundle
+
+          - publish: packages/backend/dist
+            artifact: backend-dist
+            displayName: Publish backend build artifact
+
+  - stage: publish_image
+    displayName: Build and publish GHCR image
+    dependsOn: validate
+    condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+    jobs:
+      - job: publish
+        displayName: Build Docker image and push tags
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - task: NodeTool@0
+            displayName: Use Node.js $(nodeVersion)
+            inputs:
+              versionSpec: '$(nodeVersion)'
+
+          - script: corepack enable
+            displayName: Enable Corepack
+
+          - script: yarn install --immutable
+            displayName: Install dependencies
+
+          - script: |
+              yarn tsc
+              yarn build:backend
+            displayName: Build backend bundle
+
+          - script: |
+              set -euo pipefail
+
+              short_sha="$(Build.SourceVersion)"
+              short_sha="${short_sha:0:7}"
+              image="$(imageRepository)"
+              revision="$(Build.SourceVersion)"
+              version="0.0.0-${short_sha}"
+              tags=("${image}:sha-${short_sha}")
+
+              if [[ "$(Build.SourceBranch)" == "refs/heads/main" ]]; then
+                tags+=("${image}:dev")
+              fi
+
+              if [[ "$(Build.SourceBranch)" == refs/tags/v* ]]; then
+                version="$(Build.SourceBranchName)"
+                tags+=("${image}:${version}")
+                tags+=("${image}:prod")
+              fi
+
+              docker_args=()
+              for tag in "${tags[@]}"; do
+                docker_args+=("-t" "$tag")
+              done
+
+              docker build \
+                -f "$(dockerfilePath)" \
+                --build-arg IMAGE_VERSION="$version" \
+                --build-arg IMAGE_REVISION="$revision" \
+                --build-arg IMAGE_SOURCE="https://github.com/giulianopedrotti/loario-backstage" \
+                "${docker_args[@]}" \
+                .
+
+              {
+                echo "IMAGE=${image}"
+                echo "VERSION=${version}"
+                echo "REVISION=${revision}"
+                printf 'TAGS='
+                printf '%s ' "${tags[@]}"
+                printf '\n'
+              } > image-metadata.env
+            displayName: Build Docker image
+
+          - script: |
+              set -euo pipefail
+              if [[ -z "${GHCR_TOKEN:-}" || "${GHCR_TOKEN}" == '$(GHCR_TOKEN)' ]]; then
+                echo "GHCR_TOKEN is required. Store a GitHub token with write:packages as a secret pipeline variable."
+                exit 1
+              fi
+              echo "$GHCR_TOKEN" | docker login ghcr.io -u giulianopedrotti --password-stdin
+            displayName: Login to GHCR
+            env:
+              GHCR_TOKEN: $(GHCR_TOKEN)
+
+          - script: |
+              set -euo pipefail
+              source image-metadata.env
+              for tag in $TAGS; do
+                docker push "$tag"
+              done
+            displayName: Push Docker image tags
+
+          - publish: image-metadata.env
+            artifact: image-metadata
+            displayName: Publish image metadata
