@@ -12,10 +12,19 @@ pr:
       - main
 
 variables:
-  nodeVersion: '24.x'
   imageRepository: 'ghcr.io/giulianopedrotti/loario-backstage'
   dockerfilePath: 'packages/backend/Dockerfile'
   DOCKER_BUILDKIT: '1'
+
+pool:
+  name: 'loar-self-hosted'
+  demands:
+    - Agent.Name -equals loar-rnr-01
+    - node.js
+    - npm
+    - docker
+    - Corepack
+    - Yarn
 
 stages:
   - stage: validate
@@ -23,16 +32,14 @@ stages:
     jobs:
       - job: validate
         displayName: Install, typecheck, lint and build backend
-        pool:
-          vmImage: 'ubuntu-latest'
         steps:
-          - task: NodeTool@0
-            displayName: Use Node.js $(nodeVersion)
-            inputs:
-              versionSpec: '$(nodeVersion)'
-
-          - script: corepack enable
-            displayName: Enable Corepack
+          - script: |
+              set -euo pipefail
+              node --version
+              npm --version
+              corepack --version
+              yarn --version
+            displayName: Validate runner toolchain
 
           - script: yarn install --immutable
             displayName: Install dependencies
@@ -60,16 +67,15 @@ stages:
     jobs:
       - job: publish
         displayName: Build Docker image and push tags
-        pool:
-          vmImage: 'ubuntu-latest'
         steps:
-          - task: NodeTool@0
-            displayName: Use Node.js $(nodeVersion)
-            inputs:
-              versionSpec: '$(nodeVersion)'
-
-          - script: corepack enable
-            displayName: Enable Corepack
+          - script: |
+              set -euo pipefail
+              node --version
+              npm --version
+              corepack --version
+              yarn --version
+              docker --version
+            displayName: Validate runner toolchain
 
           - script: yarn install --immutable
             displayName: Install dependencies
@@ -135,6 +141,10 @@ stages:
 
           - script: |
               set -euo pipefail
+              cleanup() {
+                docker logout ghcr.io >/dev/null 2>&1 || true
+              }
+              trap cleanup EXIT
               source image-metadata.env
               for tag in $TAGS; do
                 docker push "$tag"
