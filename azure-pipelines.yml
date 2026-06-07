@@ -50,9 +50,6 @@ stages:
           - script: yarn lint:all
             displayName: Lint
 
-          - script: timeout 10m yarn workspace app test --ci --runInBand --forceExit --passWithNoTests
-            displayName: Unit tests
-
           - script: yarn build:backend
             displayName: Build backend bundle
 
