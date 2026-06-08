@@ -124,9 +124,9 @@ stages:
                 echo "IMAGE=${image}"
                 echo "VERSION=${version}"
                 echo "REVISION=${revision}"
-                printf 'TAGS='
+                printf "TAGS='"
                 printf '%s ' "${tags[@]}"
-                printf '\n'
+                printf "'\n"
               } > image-metadata.env
             displayName: Build Docker image
 
