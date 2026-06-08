@@ -12,9 +12,13 @@ pr:
       - main
 
 variables:
-  imageRepository: 'ghcr.io/giulianopedrotti/loario-backstage'
-  dockerfilePath: 'packages/backend/Dockerfile'
-  DOCKER_BUILDKIT: '1'
+  - group: loario-backstage-secrets
+  - name: imageRepository
+    value: 'ghcr.io/giulianopedrotti/loario-backstage'
+  - name: dockerfilePath
+    value: 'packages/backend/Dockerfile'
+  - name: DOCKER_BUILDKIT
+    value: '1'
 
 pool:
   name: 'loar-self-hosted'
