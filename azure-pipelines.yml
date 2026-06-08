@@ -12,9 +12,10 @@ pr:
       - main
 
 variables:
-  - group: loario-backstage-secrets
   - name: imageRepository
     value: 'ghcr.io/giulianopedrotti/loario-backstage'
+  - name: ghcrServiceConnection
+    value: 'ghcr-giulianopedrotti'
   - name: dockerfilePath
     value: 'packages/backend/Dockerfile'
   - name: DOCKER_BUILDKIT
@@ -129,28 +130,26 @@ stages:
               } > image-metadata.env
             displayName: Build Docker image
 
-          - script: |
-              set -euo pipefail
-              if [[ -z "${GHCR_TOKEN:-}" || "${GHCR_TOKEN}" == '$(GHCR_TOKEN)' ]]; then
-                echo "GHCR_TOKEN is required. Store a GitHub token with write:packages as a secret pipeline variable."
-                exit 1
-              fi
-              echo "$GHCR_TOKEN" | docker login ghcr.io -u giulianopedrotti --password-stdin
+          - task: Docker@2
             displayName: Login to GHCR
-            env:
-              GHCR_TOKEN: $(GHCR_TOKEN)
+            inputs:
+              command: login
+              containerRegistry: $(ghcrServiceConnection)
 
           - script: |
               set -euo pipefail
-              cleanup() {
-                docker logout ghcr.io >/dev/null 2>&1 || true
-              }
-              trap cleanup EXIT
               source image-metadata.env
               for tag in $TAGS; do
                 docker push "$tag"
               done
             displayName: Push Docker image tags
+
+          - task: Docker@2
+            displayName: Logout from GHCR
+            condition: always()
+            inputs:
+              command: logout
+              containerRegistry: $(ghcrServiceConnection)
 
           - publish: image-metadata.env
             artifact: image-metadata
