@@ -77,10 +77,39 @@ Production config is loaded through:
 node packages/backend --config app-config.yaml --config app-config.production.yaml
 ```
 
-Environment-specific values, secrets, cluster access paths, service
-connections and release procedures are maintained in the private operational
-documentation. Do not commit secrets or customer environment details to this
-repository.
+Production is expected to run at:
+
+```text
+https://csp.loartec.io
+```
+
+The Docker Swarm stack in `loario-infra/docker-stack.yml` must provide these
+runtime values:
+
+| Name | Required | Example / source |
+|---|---:|---|
+| `BACKEND_SECRET_FILE` | yes | `/run/secrets/backstage_backend_secret` |
+| `POSTGRES_HOST` | yes | `postgresql` |
+| `POSTGRES_PORT` | yes | `5432` |
+| `POSTGRES_USER` | yes | `backstage` |
+| `POSTGRES_DATABASE` | yes | `backstage` |
+| `POSTGRES_PASSWORD_FILE` | yes | `/run/secrets/backstage_db_password` |
+
+The backend auth secret and PostgreSQL password must be provided through Docker
+secret files, not as plain environment variables. Expected Swarm secret names:
+
+```text
+backstage_backend_secret
+backstage_db_password
+```
+
+`app-config.production.yaml` currently keeps guest auth only as a temporary
+bridge for the first production wiring. Do not expose the portal broadly until
+Microsoft Entra ID auth replaces guest auth.
+
+Environment-specific secrets, cluster access paths, service connections and
+release procedures are maintained in the private operational documentation. Do
+not commit secrets or customer environment details to this repository.
 
 ## Docker Swarm
 

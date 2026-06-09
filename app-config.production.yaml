@@ -1,6 +1,6 @@
 app:
-  # Should be the same as backend.baseUrl when using the `app-backend` plugin.
-  baseUrl: ${APP_BASE_URL}
+  title: Loar AiOps CSP
+  baseUrl: https://csp.loartec.io
 
 backend:
   # Note that the baseUrl should be the URL that the browser and other clients
@@ -8,10 +8,18 @@ backend:
   # reachable not just from within the backend host, but from all of your
   # callers. When its value is "http://localhost:7007", it's strictly private
   # and can't be reached by others.
-  baseUrl: ${BACKEND_BASE_URL}
+  baseUrl: https://csp.loartec.io
   # The listener can also be expressed as a single <host>:<port> string. In this case we bind to
   # all interfaces, the most permissive setting. The right value depends on your specific deployment.
   listen: ':7007'
+  auth:
+    keys:
+      - secret:
+          $file: ${BACKEND_SECRET_FILE}
+  cors:
+    origin: https://csp.loartec.io
+    methods: [GET, HEAD, PATCH, POST, PUT, DELETE]
+    credentials: true
 
   # config options: https://node-postgres.com/apis/client
   database:
@@ -20,7 +28,8 @@ backend:
       host: ${POSTGRES_HOST}
       port: ${POSTGRES_PORT}
       user: ${POSTGRES_USER}
-      password: ${POSTGRES_PASSWORD}
+      password:
+        $file: ${POSTGRES_PASSWORD_FILE}
       database: ${POSTGRES_DATABASE}
       # https://node-postgres.com/features/ssl
       # you can set the sslmode configuration option via the `PGSSLMODE` environment variable
@@ -31,7 +40,8 @@ backend:
 
 auth:
   providers:
-    # Initial phase only. Replace with OIDC before broad production access.
+    # Temporary until the Microsoft Entra ID provider is enabled.
+    # Do not expose production broadly while guest auth is active.
     guest: {}
 
 catalog:
