@@ -94,18 +94,28 @@ runtime values:
 | `POSTGRES_USER` | yes | `backstage` |
 | `POSTGRES_DATABASE` | yes | `backstage` |
 | `POSTGRES_PASSWORD_FILE` | yes | `/run/secrets/backstage_db_password` |
+| `AUTH_MICROSOFT_CLIENT_ID` | yes | `c4ce8bf7-4d88-4d64-bb66-6289ab784ee4` |
+| `AUTH_MICROSOFT_TENANT_ID` | yes | `db6ca47c-e3a0-4376-9c21-477764fe543a` |
+| `AUTH_MICROSOFT_CLIENT_SECRET_FILE` | yes | `/run/secrets/backstage_microsoft_client_secret` |
 
-The backend auth secret and PostgreSQL password must be provided through Docker
-secret files, not as plain environment variables. Expected Swarm secret names:
+The backend auth secret, PostgreSQL password and Microsoft client secret must be
+provided through Docker secret files, not as plain environment variables.
+Expected Swarm secret names:
 
 ```text
 backstage_backend_secret
 backstage_db_password
+backstage_microsoft_client_secret
 ```
 
-`app-config.production.yaml` currently keeps guest auth only as a temporary
-bridge for the first production wiring. Do not expose the portal broadly until
-Microsoft Entra ID auth replaces guest auth.
+Production auth uses Microsoft Entra ID. Guest auth is not configured in
+`app-config.production.yaml` and the backend no longer loads the guest auth
+provider module.
+
+The first production Microsoft sign-in resolver allows users assigned to the
+Enterprise Application to sign in before full catalog ingestion is implemented.
+The Entra Enterprise Application must keep assignment required enabled and must
+only assign security groups, never individual users.
 
 Environment-specific secrets, cluster access paths, service connections and
 release procedures are maintained in the private operational documentation. Do

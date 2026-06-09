@@ -40,12 +40,26 @@ Expected secret file:
 | `POSTGRES_USER` | PostgreSQL user for Backstage. |
 | `POSTGRES_DATABASE` | PostgreSQL database for Backstage. |
 | `POSTGRES_PASSWORD_FILE` | Path to the Docker secret file containing the database password. |
+| `AUTH_MICROSOFT_CLIENT_ID` | Microsoft Entra ID app registration client ID. |
+| `AUTH_MICROSOFT_TENANT_ID` | Microsoft Entra ID tenant ID. |
+| `AUTH_MICROSOFT_CLIENT_SECRET_FILE` | Path to the Docker secret file containing the Microsoft app client secret. |
 
 Do not commit secret values to Git. The `loario-infra` stack should reference
 Docker secrets or an approved secret provider.
 
-## Temporary Auth State
+## Microsoft Entra ID Auth
 
-Guest auth remains configured only as a short-lived bridge while production
-networking and database wiring are prepared. The portal must not be exposed
-broadly to customers until the Microsoft Entra ID provider replaces guest auth.
+Production auth uses the Microsoft provider:
+
+| Setting | Value |
+|---|---|
+| Tenant ID | `db6ca47c-e3a0-4376-9c21-477764fe543a` |
+| Client ID | `c4ce8bf7-4d88-4d64-bb66-6289ab784ee4` |
+| Redirect URI | `https://csp.loartec.io/api/auth/microsoft/handler/frame` |
+| Client secret file | `/run/secrets/backstage_microsoft_client_secret` |
+
+Guest auth is not configured in `app-config.production.yaml`. The first
+production Microsoft sign-in resolver uses the Entra Enterprise Application as
+the access gate and allows sign-in before full catalog ingestion is implemented.
+The Enterprise Application must keep assignment required enabled and must only
+assign security groups.

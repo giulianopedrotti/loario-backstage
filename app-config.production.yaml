@@ -39,10 +39,21 @@ backend:
       #     $file: <file-path>/ca/server.crt
 
 auth:
+  environment: production
   providers:
-    # Temporary until the Microsoft Entra ID provider is enabled.
-    # Do not expose production broadly while guest auth is active.
-    guest: {}
+    microsoft:
+      production:
+        clientId: ${AUTH_MICROSOFT_CLIENT_ID}
+        clientSecret:
+          $file: ${AUTH_MICROSOFT_CLIENT_SECRET_FILE}
+        tenantId: ${AUTH_MICROSOFT_TENANT_ID}
+        domainHint: loartec.io
+        signIn:
+          resolvers:
+            - resolver: emailLocalPartMatchingUserEntityName
+              allowedDomains:
+                - loartec.io
+              dangerouslyAllowSignInWithoutUserInCatalog: true
 
 catalog:
   # Overrides the default list locations from app-config.yaml as these contain example data.
