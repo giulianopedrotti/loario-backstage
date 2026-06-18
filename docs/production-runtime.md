@@ -58,8 +58,9 @@ Production auth uses the Microsoft provider:
 | Redirect URI | `https://csp.loartec.io/api/auth/microsoft/handler/frame` |
 | Client secret file | `/run/secrets/backstage_microsoft_client_secret` |
 
-Guest auth is not configured in `app-config.production.yaml`. The first
-production Microsoft sign-in resolver uses the Entra Enterprise Application as
-the access gate and allows sign-in before full catalog ingestion is implemented.
-The Enterprise Application must keep assignment required enabled and must only
-assign security groups.
+Guest auth is not configured in `app-config.yaml` or
+`app-config.production.yaml`, and the frontend registers an explicit Microsoft
+sign-in page. The first production Microsoft sign-in resolver uses the Entra
+Enterprise Application as the access gate and allows sign-in before full
+catalog ingestion is implemented. The Enterprise Application must keep
+assignment required enabled and must only assign security groups.

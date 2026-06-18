@@ -109,8 +109,10 @@ backstage_microsoft_client_secret
 ```
 
 Production auth uses Microsoft Entra ID. Guest auth is not configured in
-`app-config.production.yaml` and the backend no longer loads the guest auth
-provider module.
+`app-config.yaml` or `app-config.production.yaml`, and the backend no longer
+loads the guest auth provider module. The frontend registers an explicit
+Microsoft sign-in page so the public production URL does not fall back to a
+guest identity.
 
 The first production Microsoft sign-in resolver allows users assigned to the
 Enterprise Application to sign in before full catalog ingestion is implemented.
