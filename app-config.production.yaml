@@ -48,12 +48,10 @@ auth:
           $file: ${AUTH_MICROSOFT_CLIENT_SECRET_FILE}
         tenantId: ${AUTH_MICROSOFT_TENANT_ID}
         domainHint: loartec.io
-        signIn:
-          resolvers:
-            - resolver: emailLocalPartMatchingUserEntityName
-              allowedDomains:
-                - loartec.io
-              dangerouslyAllowSignInWithoutUserInCatalog: true
+        additionalScopes:
+          - openid
+          - profile
+          - email
 
 catalog:
   # Overrides the default list locations from app-config.yaml as these contain example data.
@@ -76,3 +74,15 @@ catalog:
       target: ./examples/org.yaml
       rules:
         - allow: [User, Group]
+
+    # Tenant-scoped pilot data for the first authorization policy.
+    - type: file
+      target: ./examples/tenants/loartec/entities.yaml
+      rules:
+        - allow: [System, Component, Resource, Group]
+
+    # Fictitious tenant used to validate denied cross-tenant catalog reads.
+    - type: file
+      target: ./examples/tenants/acme/entities.yaml
+      rules:
+        - allow: [System, Component, Resource, Group]

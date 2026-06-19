@@ -1,0 +1,62 @@
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  namespace: loartec
+  name: sg-loar-loartec-backstage-users
+  annotations:
+    loartec.io/tenant-slug: loartec
+    loartec.io/visibility: customer
+spec:
+  type: team
+  profile:
+    displayName: Loar Backstage Users
+  children: []
+---
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  namespace: loartec
+  name: sg-loar-loartec-backstage-admins
+  annotations:
+    loartec.io/tenant-slug: loartec
+    loartec.io/visibility: customer
+spec:
+  type: team
+  profile:
+    displayName: Loar Backstage Admins
+  children: []
+---
+apiVersion: backstage.io/v1alpha1
+kind: System
+metadata:
+  namespace: loartec
+  name: loartec-csp
+  description: Loar Tecnologia customer portal pilot.
+  annotations:
+    loartec.io/tenant-slug: loartec
+    loartec.io/tenant-display-name: Loar Tecnologia
+    loartec.io/visibility: customer
+  tags:
+    - tenant-loartec
+    - customer-resource
+spec:
+  owner: group:loartec/sg-loar-loartec-backstage-users
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  namespace: loartec
+  name: portal-csp
+  description: Loar CSP Backstage portal pilot component.
+  annotations:
+    loartec.io/tenant-slug: loartec
+    loartec.io/tenant-display-name: Loar Tecnologia
+    loartec.io/visibility: customer
+  tags:
+    - tenant-loartec
+    - customer-resource
+spec:
+  type: website
+  lifecycle: production
+  owner: group:loartec/sg-loar-loartec-backstage-users
+  system: loartec-csp

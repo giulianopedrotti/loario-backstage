@@ -1,0 +1,48 @@
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  namespace: acme
+  name: sg-loar-acme-backstage-users
+  annotations:
+    loartec.io/tenant-slug: acme
+    loartec.io/visibility: customer
+spec:
+  type: team
+  profile:
+    displayName: Acme Backstage Users
+  children: []
+---
+apiVersion: backstage.io/v1alpha1
+kind: System
+metadata:
+  namespace: acme
+  name: acme-csp
+  description: Fictitious tenant used to validate cross-tenant authorization.
+  annotations:
+    loartec.io/tenant-slug: acme
+    loartec.io/tenant-display-name: Acme Corporation
+    loartec.io/visibility: customer
+  tags:
+    - tenant-acme
+    - customer-resource
+spec:
+  owner: group:acme/sg-loar-acme-backstage-users
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  namespace: acme
+  name: portal-csp
+  description: Fictitious tenant component used to validate denied reads.
+  annotations:
+    loartec.io/tenant-slug: acme
+    loartec.io/tenant-display-name: Acme Corporation
+    loartec.io/visibility: customer
+  tags:
+    - tenant-acme
+    - customer-resource
+spec:
+  type: website
+  lifecycle: production
+  owner: group:acme/sg-loar-acme-backstage-users
+  system: acme-csp
